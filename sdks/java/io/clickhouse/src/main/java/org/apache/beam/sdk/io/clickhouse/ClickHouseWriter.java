@@ -17,8 +17,16 @@
  */
 package org.apache.beam.sdk.io.clickhouse;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+
+import com.clickhouse.client.ClickHouseColumn;
+import com.clickhouse.client.ClickHouseConfig;
+import com.clickhouse.client.data.ClickHouseMapValue;
+import com.clickhouse.client.data.ClickHouseRowBinaryProcessor;
 import org.apache.beam.sdk.annotations.Experimental;
 import org.apache.beam.sdk.annotations.Experimental.Kind;
 import org.apache.beam.sdk.io.clickhouse.TableSchema.ColumnType;
@@ -143,6 +151,15 @@ public class ClickHouseWriter {
         for (Object arrayValue : values) {
           writeValue(stream, columnType.arrayElementType(), arrayValue);
         }
+        break;
+
+      case MAP:
+        Map<String, String> valueMap = (Map<String, String>) value;
+        ClickHouseConfig config = new ClickHouseConfig();
+        ByteArrayOutputStream bas = new ByteArrayOutputStream();
+        ClickHouseRowBinaryProcessor.getMappedFunctions().serialize(ClickHouseMapValue.of(valueMap, String.class, String.class), config,
+                ClickHouseColumn.of("m", "Map(String, String)"), bas);
+        stream.writeBytes(bas.toByteArray());
         break;
     }
   }

@@ -109,6 +109,9 @@ public abstract class TableSchema implements Serializable {
       case ARRAY:
         return Schema.FieldType.array(getEquivalentFieldType(columnType.arrayElementType()));
 
+      case MAP:
+        return Schema.FieldType.map(getEquivalentFieldType(columnType.mapKeyElementType()), getEquivalentFieldType(columnType.mapValueElementType()));
+
       case ENUM8:
       case ENUM16:
         return Schema.FieldType.STRING;
@@ -167,7 +170,8 @@ public abstract class TableSchema implements Serializable {
     UINT32,
     UINT64,
     // Composite types
-    ARRAY
+    ARRAY,
+    MAP
   }
 
   /**
@@ -218,6 +222,10 @@ public abstract class TableSchema implements Serializable {
 
     public abstract @Nullable ColumnType arrayElementType();
 
+    public abstract @Nullable ColumnType mapKeyElementType();
+
+    public abstract @Nullable ColumnType mapValueElementType();
+
     public ColumnType withNullable(boolean nullable) {
       return toBuilder().nullable(nullable).build();
     }
@@ -261,6 +269,16 @@ public abstract class TableSchema implements Serializable {
           .nullable(false)
           .arrayElementType(arrayElementType)
           .build();
+    }
+
+    public static ColumnType map(ColumnType mapKeyElementType, ColumnType mapValueElementType) {
+      return ColumnType.builder()
+              .typeName(TypeName.MAP)
+              // ClickHouse doesn't allow nullable map
+              .nullable(false)
+              .mapKeyElementType(mapKeyElementType)
+              .mapValueElementType(mapValueElementType)
+              .build();
     }
 
     /**
@@ -343,6 +361,10 @@ public abstract class TableSchema implements Serializable {
       public abstract Builder enumValues(Map<String, Integer> enumValues);
 
       public abstract Builder fixedStringSize(Integer size);
+
+      public abstract Builder mapKeyElementType(ColumnType mapKeyElementType);
+
+      public abstract Builder mapValueElementType(ColumnType mapValueElementType);
 
       public abstract ColumnType build();
     }

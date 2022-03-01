@@ -74,6 +74,7 @@ TOKEN :
 TOKEN :
 {
     < ARRAY       : "ARRAY" >
+  | < MAP         : "MAP" >
   | < DATE        : "DATE" >
   | < DATETIME    : "DATETIME" >
   | < ENUM8       : "ENUM8" >
@@ -110,6 +111,7 @@ public ColumnType columnType() :
         | ct = enum_()
         | ct = array()
         | ct = nullable()
+        | ct = map()
     )
     {
         return ct;
@@ -230,6 +232,18 @@ private ColumnType array() :
 {
     (<ARRAY> <LPAREN> (element = columnType()) <RPAREN>) {
         return ColumnType.array(element);
+    }
+}
+
+private ColumnType map() :
+{
+    ColumnType ct;
+    ColumnType key;
+    ColumnType value;
+}
+{
+    (<MAP> <LPAREN> (key = columnType()) <COMMA> (value = columnType()) <RPAREN>) {
+        return ColumnType.map(key, value);
     }
 }
 

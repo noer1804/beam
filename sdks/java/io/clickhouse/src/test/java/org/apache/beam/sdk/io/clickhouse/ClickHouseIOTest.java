@@ -22,6 +22,8 @@ import static org.junit.Assert.assertEquals;
 
 import java.sql.ResultSet;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import org.apache.beam.sdk.io.clickhouse.TableSchema.ColumnType;
 import org.apache.beam.sdk.schemas.JavaFieldSchema;
@@ -99,7 +101,7 @@ public class ClickHouseIOTest extends BaseClickHouseTest {
     Row row2 = Row.withSchema(schema).addValue(null).build();
     Row row3 = Row.withSchema(schema).addValue(3L).build();
 
-    executeSql("CREATE TABLE test_int64_with_default (f0 Int64 DEFAULT -1) ENGINE=Log");
+    executeSql("CREATE TABLE test_int64_with_default (f0 Int64 DEFAULT CAST(-1 as Int64)) ENGINE=Log");
 
     pipeline
         .apply(Create.of(row1, row2, row3).withRowSchema(schema))
@@ -317,6 +319,37 @@ public class ClickHouseIOTest extends BaseClickHouseTest {
       assertEquals("[12,13]", rs.getString("f12"));
       assertEquals("['abc','cde']", rs.getString("f13"));
       assertEquals("['cde','abc']", rs.getString("f14"));
+    }
+  }
+
+  @Test
+  public void testMapStringToString() throws Exception {
+    Map<String, String> property1 = new HashMap<>();
+    property1.put("platform", "web-mobile");
+    property1.put("app_name", "vidio");
+    Schema schema =
+            Schema.of(
+                    Schema.Field.of("f0", FieldType.map(FieldType.STRING, FieldType.STRING)));
+    Row row1 =
+            Row.withSchema(schema)
+                    .addValue(property1)
+                    .build();
+
+    executeSql(
+            "CREATE TABLE test_map_string_string ("
+                    + "f0 Map(String, String)"
+                    + ") ENGINE=Log");
+
+    pipeline
+            .apply(Create.of(row1).withRowSchema(schema))
+            .apply(write("test_map_string_string"));
+
+    pipeline.run().waitUntilFinish();
+
+    try (ResultSet rs = executeQuery("SELECT * FROM test_map_string_string")) {
+      rs.next();
+
+      assertEquals(property1, rs.getObject("f0"));
     }
   }
 

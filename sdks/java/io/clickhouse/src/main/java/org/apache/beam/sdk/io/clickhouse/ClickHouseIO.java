@@ -443,6 +443,7 @@ public class ClickHouseIO {
 
       while (true) {
         try (ClickHouseStatement statement = connection.createStatement()) {
+
           statement.sendRowBinaryStream(
               insertSql(schema(), table()),
               stream -> {
