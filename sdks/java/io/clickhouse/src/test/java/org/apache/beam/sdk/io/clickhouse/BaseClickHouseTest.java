@@ -56,11 +56,11 @@ public class BaseClickHouseTest {
 
   private static final String ZOOKEEPER_VERSION = "3.4.13";
 
-  // yandex/clickhouse-server:21.3.20.1
+  // yandex/clickhouse-server:21.10.5.3
   // use SHA256 not to pull docker hub for tag if image already exists locally
   private static final String CLICKHOUSE_IMAGE =
       "yandex/clickhouse-server@"
-          + "sha256:4eccfffb01d735ab7c1af9a97fbff0c532112a6871b2bb5fe5c478d86d247b7e";
+          + "sha256:6f821473d906a2b3943a4a3126224880dd0257e33644a8ac67e26ee0771238be";
 
   private static final Logger LOG = LoggerFactory.getLogger(BaseClickHouseTest.class);
 
@@ -93,10 +93,6 @@ public class BaseClickHouseTest {
                 .withClasspathResourceMapping(
                     "config.d/zookeeper_default.xml",
                     "/etc/clickhouse-server/config.d/zookeeper_default.xml",
-                    BindMode.READ_ONLY)
-                .withClasspathResourceMapping(
-                    "config.d/allow_experimental_map_type.xml",
-                    "/etc/clickhouse-server/users.d/allow_experimental_map_type.xml",
                     BindMode.READ_ONLY);
 
     BackOff backOff =
